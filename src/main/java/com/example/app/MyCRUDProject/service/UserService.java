@@ -55,12 +55,12 @@ public class UserService {
         return Optional.empty();
     }
 
-    public Optional<?> deleteUserById(Long id) {
+    public boolean deleteUserById(Long id) {
         if (repository.existsById(id)) {
             Optional<User> user = repository.findById(id);
             repository.deleteById(id);
-            return Optional.of(user);
+            return true;
         }
-        return Optional.empty();
+        return false;
     }
 }

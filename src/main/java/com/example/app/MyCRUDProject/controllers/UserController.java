@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@RestController
+@Controller
 public class UserController {
     @Autowired
     UserService service;
@@ -32,20 +32,26 @@ public class UserController {
     }
 
     @GetMapping(FIND_USER_BY_ID)
-    public ResponseEntity<?> findById(@PathVariable("id") Long userId){
+    public ResponseEntity<Response> findById(@PathVariable("id") Long userId){
         Optional<User> optionalUsers = service.getUserById(userId);
         if (optionalUsers.isPresent()){
             User user = optionalUsers.get();
-            return ResponseEntity.ok(Response.builder()
+            Response response = Response.builder()
                     .status("Success")
-                    .massage("User successfully found ")
-                    .user(user));
-        } else
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Response.builder()
-                            .status("Error")
-                            .massage("user is not found")
-                            .user(null));
+                    .massage("User successfully find")
+                    .user(user)
+                    .build();
+            return ResponseEntity.ok(response);
+
+
+        } else {
+            Response response = Response.builder()
+                    .status("Error")
+                    .massage("user is not found")
+                    .user(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
 
     @PostMapping(CREATE_USER)
@@ -99,23 +105,25 @@ public class UserController {
                             .build());
     }
     @DeleteMapping(DELETE_USER)
-    public ResponseEntity<?> deleteUser(@PathVariable("id") Long id) {
-        Optional<?> userDelete = service.deleteUserById(id);
+    public ResponseEntity<Response> deleteUser(@PathVariable("id") Long id) {
+        boolean userDelete = service.deleteUserById(id);
 
-        if (userDelete.isPresent()) {
-            User user = (User) userDelete.get();
-            return ResponseEntity.ok(Response.builder()
+        if (userDelete) {
+            Response response = Response.builder()
                     .status("Success")
                     .massage("Successfully uninstalled user ")
-                    .user(user)
-                    .build());
+                    .user(null)
+                    .build();
+            return ResponseEntity.ok(response);
+
+        } else {
+            Response response = Response.builder()
+                    .status("Error")
+                    .massage("No such user exists")
+                    .user(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Response.builder()
-                        .status("Error")
-                        .massage("No such user exists ")
-                        .user(null)
-                        .build());
     }
 
 
