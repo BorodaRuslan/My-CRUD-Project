@@ -1,6 +1,7 @@
 package com.example.app.MyCRUDProject.controllers;
 
 import com.example.app.MyCRUDProject.entity.Response;
+import com.example.app.MyCRUDProject.entity.ResponseAllUsers;
 import com.example.app.MyCRUDProject.entity.User;
 import com.example.app.MyCRUDProject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,14 @@ public class UserController {
 
 
     @GetMapping(SHOW_ALL_USERS)
-    public ResponseEntity<List<User>> showAllUsers(){
+    public ResponseEntity<ResponseAllUsers> showAllUsers(){
         List<User> allUsers = service.getAllUsers();
-        return ResponseEntity.ok(allUsers);
+        ResponseAllUsers response = ResponseAllUsers.builder()
+                .status("Success")
+                .massage("All users found")
+                .userList(allUsers)
+                .build();
+        return ResponseEntity.ok(response);
 
     }
 
@@ -55,7 +61,7 @@ public class UserController {
     }
 
     @PostMapping(CREATE_USER)
-    public ResponseEntity<?> createUser(
+    public ResponseEntity<Response> createUser(
             @PathVariable("firstName") String firstName,
             @PathVariable("lastName") String lastName,
             @PathVariable("phone") String phone){
@@ -67,47 +73,49 @@ public class UserController {
                 .build();
 
         Optional<User> userResult = service.createUser(user);
-        if (userResult.isPresent())
-            return ResponseEntity.ok(Response.builder()
+        if (userResult.isPresent()) {
+            Response response = Response.builder()
                     .status("Success")
                     .massage("User successfully saved")
                     .user(user)
-                    .build());
+                    .build();
+        return ResponseEntity.ok(response);
+        }
+        else {
 
-        else
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR).
-                    body(Response.builder()
-                            .status("Error")
-                            .massage("User was not saved in the database")
-                            .user(null)
-                            .build());
+            Response response = Response.builder()
+                    .status("Error")
+                    .massage("User was not saved in the database")
+                    .user(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
 
     }
     @PatchMapping(UPDATE_USER_PHONE)
-    public ResponseEntity<?> update(@PathVariable("id") Long id, @PathVariable("phone") String phone){
+    public ResponseEntity<Response> update(@PathVariable("id") Long id, @PathVariable("phone") String phone){
         Optional<?> updatedUser = service.updateUserNumberPhone(id, phone);
         if (updatedUser.isPresent()){
             User user = (User) updatedUser.get();
-
-            return ResponseEntity.ok(Response.builder()
+            Response response = Response.builder()
                     .status("Success")
                     .massage("Data successfully updated")
                     .user(user)
-                    .build());
+                    .build();
+            return ResponseEntity.ok(response);
         }
-        else
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Response.builder()
-                            .status("Error")
-                            .massage("User with specified ID not found")
-                            .user(null)
-                            .build());
+        else {
+            Response response = Response.builder()
+                    .status("Error")
+                    .massage("User with specified ID not found")
+                    .user(null)
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
     @DeleteMapping(DELETE_USER)
     public ResponseEntity<Response> deleteUser(@PathVariable("id") Long id) {
         boolean userDelete = service.deleteUserById(id);
-
         if (userDelete) {
             Response response = Response.builder()
                     .status("Success")
@@ -125,23 +133,4 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
-
-
-//    @GetMapping(FIND_USER_BY_ID)
-//    public ResponseEntity<?> findById(@PathVariable("id") Long userId){
-//        Optional<User> user = service.getUserById(userId);
-//        return user.map(value -> ResponseEntity.ok(Response.builder()
-//                .status("Success")
-//                .massage("User successfully found ")
-//                .user(value))).orElseGet(() -> ResponseEntity
-//                .status(HttpStatus.NOT_FOUND)
-//                .body(Response.builder()
-//                        .status("Error")
-//                        .massage("user is not found")
-//                        .user(null)));
-//    }
-
-
-
-
 }
